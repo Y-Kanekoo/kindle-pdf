@@ -850,6 +850,9 @@ def main():
         sys.exit(1)
     print(f"  ✓ ウィンドウサイズ: {bounds[2]}x{bounds[3]}")
 
+    # 画面を左右分割（ターミナル左、Kindle右）
+    setup_split_screen()
+
     # テストモード
     if args.test:
         print()
