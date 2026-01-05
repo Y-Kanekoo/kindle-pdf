@@ -687,19 +687,28 @@ def run_capture_auto(book_name: str, wait_time: float = 0.8, max_pages: int = 20
     # 書籍が開くのを待つ
     time.sleep(3)
 
+    # Kindleをアクティブにして画面分割を再適用
+    activate_kindle()
+    time.sleep(0.5)
+    setup_split_screen()
+    time.sleep(1)
+
     # ウィンドウ情報を確認（複数回リトライ）
     bounds = None
-    for retry in range(3):
-        bounds = get_kindle_window_bounds()
-        if bounds:
-            break
-        print(f"  ウィンドウ情報取得リトライ... ({retry + 1}/3)")
+    for retry in range(5):
         activate_kindle()
+        time.sleep(0.5)
+        bounds = get_kindle_window_bounds()
+        if bounds and bounds[3] > 100:  # 高さ100px以上のウィンドウ
+            break
+        print(f"  ウィンドウ情報取得リトライ... ({retry + 1}/5)")
         time.sleep(2)
 
     if not bounds:
         print("エラー: Kindleウィンドウの情報を取得できません")
         return None
+
+    print(f"  ウィンドウ確認: {bounds[2]}x{bounds[3]}")
 
     # 最初のページに移動
     go_to_first_page()
@@ -829,18 +838,29 @@ def main():
     print("=" * 60)
     print()
 
-    # 事前チェック
-    print("事前チェック中...")
-
+    # 1. Kindleを起動（起動していなければ）
+    print("準備中...")
     if not check_kindle_running():
-        print("エラー: Kindleアプリが起動していません")
-        print("       Kindleアプリを起動してから再度実行してください")
-        sys.exit(1)
+        print("  Kindleアプリを起動中...")
+        if not launch_kindle():
+            print("エラー: Kindleを起動できませんでした")
+            sys.exit(1)
+        time.sleep(2)
     print("  ✓ Kindleアプリ起動確認")
 
-    if not check_kindle_window_exists():
+    # 2. 画面を左右分割（ターミナル左、Kindle右）
+    setup_split_screen()
+    time.sleep(1)
+
+    # 3. ウィンドウ確認（分割後に再確認）
+    for retry in range(5):
+        if check_kindle_window_exists():
+            break
+        print(f"  ウィンドウ待機中... ({retry + 1}/5)")
+        activate_kindle()
+        time.sleep(1)
+    else:
         print("エラー: Kindleウィンドウが見つかりません")
-        print("       Kindleを開いてから再度実行してください")
         sys.exit(1)
     print("  ✓ Kindleウィンドウ確認")
 
@@ -849,9 +869,6 @@ def main():
         print("エラー: ウィンドウ情報の取得に失敗しました")
         sys.exit(1)
     print(f"  ✓ ウィンドウサイズ: {bounds[2]}x{bounds[3]}")
-
-    # 画面を左右分割（ターミナル左、Kindle右）
-    setup_split_screen()
 
     # テストモード
     if args.test:
