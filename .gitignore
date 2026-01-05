@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+
+# PDF出力
+*.pdf
+
+# スクリーンショット一時フォルダ
+screenshots_*/
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# テストキャプチャ
+test_capture/
